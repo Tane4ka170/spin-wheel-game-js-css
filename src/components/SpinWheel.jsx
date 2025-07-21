@@ -1,124 +1,111 @@
-import { useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useRef } from "react";
+import { Howl } from "howler";
 import SpinButton from "./SpinButton";
 
-function SpinWheel({ items = [], onSpinEnd = () => {} }) {
-  const [spinning, setSpinning] = useState(false);
+const SpinWheel = ({ items, onSpinEnd }) => {
+  const canvasRef = useRef(null);
   const wheelRef = useRef(null);
 
-  const spin = () => {
-    if (spinning || items.length === 0) return;
+  useEffect(() => {
+    if (!items.length) return;
 
-    const segmentAngle = 360 / items.length;
-    const randomIndex = Math.floor(Math.random() * items.length);
-    const targetAngle = 3600 + randomIndex * segmentAngle + segmentAngle / 2;
-
-    setSpinning(true);
-
-    wheelRef.current.style.transition =
-      "transform 4s cubic-bezier(0.33, 1, 0.68, 1)";
-    wheelRef.current.style.transform = `rotate(-${targetAngle}deg)`;
-
-    setTimeout(() => {
-      setSpinning(false);
-      onSpinEnd(items[randomIndex]);
-    }, 4000);
-  };
-
-  const radius = 150;
-  const center = radius;
-  const textRadius = radius * 0.65;
-
-  const renderSectors = () => {
-    const angle = 360 / items.length;
-    return items.map((item, i) => {
-      const rotate = angle * i;
-      const fill = `hsl(${(i * 137.5) % 360}, 70%, 70%)`;
-      const x =
-        center +
-        textRadius * Math.cos((Math.PI * 2 * i) / items.length - Math.PI / 2);
-      const y =
-        center +
-        textRadius * Math.sin((Math.PI * 2 * i) / items.length - Math.PI / 2);
-
-      function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
-        const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
-        return {
-          x: centerX + radius * Math.cos(angleInRadians),
-          y: centerY + radius * Math.sin(angleInRadians),
-        };
-      }
-
-      function describeArc(x, y, radius, startAngle, endAngle) {
-        const start = polarToCartesian(x, y, radius, endAngle);
-        const end = polarToCartesian(x, y, radius, startAngle);
-
-        const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
-
-        const d = [
-          "M",
-          x,
-          y,
-          "L",
-          start.x,
-          start.y,
-          "A",
-          radius,
-          radius,
-          0,
-          largeArcFlag,
-          0,
-          end.x,
-          end.y,
-          "Z",
-        ].join(" ");
-
-        return d;
-      }
-
-      return (
-        <g key={i}>
-          <path
-            d={describeArc(center, center, radius, angle * i, angle * (i + 1))}
-            fill={fill}
-            stroke="white"
-            strokeWidth="2"
-          />
-          <text
-            x={x}
-            y={y}
-            fill="black"
-            fontSize="12"
-            textAnchor="middle"
-            dominantBaseline="middle"
-            transform={`rotate(${rotate}, ${x}, ${y})`}
-          >
-            {item}
-          </text>
-        </g>
-      );
+    wheelRef.current = new window.Winwheel({
+      canvasId: "canvas",
+      numSegments: items.length,
+      outerRadius: 150,
+      textFontSize: 16,
+      segments: items.map((item, i) => ({
+        fillStyle: getColor(i),
+        text: item,
+      })),
+      animation: {
+        type: "spinToStop",
+        duration: 5,
+        spins: 8,
+        callbackFinished: (indicatedSegment) => {
+          if (onSpinEnd) onSpinEnd(indicatedSegment.text);
+        },
+        callbackSound: () => tickSound.play(),
+        soundTrigger: "pin",
+      },
+      pins: {
+        number: items.length,
+        fillStyle: "silver",
+        outerRadius: 4,
+      },
     });
+  }, [items]);
+
+  const spinWheel = () => {
+    if (wheelRef.current) {
+      wheelRef.current.stopAnimation(false);
+      wheelRef.current.rotationAngle = 0;
+      wheelRef.current.draw();
+      wheelRef.current.startAnimation();
+    }
   };
 
   return (
-    <div className="relative w-[300px] h-[300px]">
-      <div className="absolute top-1/2 left-1/2 w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-b-[30px] border-b-red-500 transform -translate-x-1/2 -translate-y-full z-10" />
-      <svg
-        width="100%"
-        height="100%"
-        viewBox={`0 0 ${radius * 2} ${radius * 2}`}
-        className="rounded-full"
-        onClick={spin}
+    <div className="flex flex-col items-center bg-white p-4 rounded-xl shadow-lg relative w-[400] h-[400]">
+      <canvas id="canvas" width="400" height="400" ref={canvasRef} />
+      <button
+        onClick={spinWheel}
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: 80,
+          height: 80,
+          borderRadius: "50%",
+          border: "none",
+          backgroundColor: "#f87171",
+          color: "white",
+          fontWeight: "bold",
+          cursor: "pointer",
+          userSelect: "none",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "4px",
+        }}
       >
-        <g ref={wheelRef} transform={`rotate(0, ${center}, ${center})`}>
-          {renderSectors()}
-        </g>
-      </svg>
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
-        <SpinButton onClick={spin} disabled={spinning || items.length === 0} />
-      </div>
+        Spin
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="none"
+          stroke="white"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 24 24"
+        >
+          <line x1="12" y1="19" x2="12" y2="5" />
+          <polyline points="5 12 12 5 19 12" />
+        </svg>
+      </button>
     </div>
   );
-}
+};
+
+const tickSound = new Howl({
+  src: ["/tick.mp3"],
+  volume: 0.5,
+});
+
+const colors = [
+  "#f87171",
+  "#60a5fa",
+  "#34d399",
+  "#facc15",
+  "#a78bfa",
+  "#fb923c",
+  "#f472b6",
+];
+
+const getColor = (index) => colors[index % colors.length];
 
 export default SpinWheel;
