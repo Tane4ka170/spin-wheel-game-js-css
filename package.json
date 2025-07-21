@@ -12,9 +12,11 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.11",
     "framer-motion": "^12.23.6",
+    "howler": "^2.2.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "tailwindcss": "^4.1.11"
+    "tailwindcss": "^4.1.11",
+    "winwheel": "^1.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",
