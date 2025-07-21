@@ -89,7 +89,10 @@ function App() {
         />
 
         <div className="flex flex-col items-center gap-4">
-          <SpinWheel items={currentTab.items} />
+          <SpinWheel
+            items={currentTab.items}
+            onSpinEnd={(item) => alert(`Випало: ${item}`)}
+          />
         </div>
       </div>
     </div>
