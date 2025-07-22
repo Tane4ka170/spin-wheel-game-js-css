@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import { Howl } from "howler";
-import SpinButton from "./SpinButton";
 
 const SpinWheel = ({ items, onSpinEnd }) => {
   const canvasRef = useRef(null);
@@ -23,6 +22,7 @@ const SpinWheel = ({ items, onSpinEnd }) => {
         duration: 5,
         spins: 8,
         callbackFinished: (indicatedSegment) => {
+          console.log("Finished spin with:", indicatedSegment.text);
           if (onSpinEnd) onSpinEnd(indicatedSegment.text);
         },
         callbackSound: () => tickSound.play(),
@@ -46,7 +46,24 @@ const SpinWheel = ({ items, onSpinEnd }) => {
   };
 
   return (
-    <div className="flex flex-col items-center bg-white p-4 rounded-xl shadow-lg relative w-[400] h-[400]">
+    <div
+      style={{ position: "relative", width: 400, height: 400 }}
+      className="relative"
+    >
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: "50%",
+          transform: "translateX(-50%) rotate(180deg)",
+          width: 0,
+          height: 0,
+          borderLeft: "20px solid transparent",
+          borderRight: "20px solid transparent",
+          borderBottom: "30px solid #333",
+          zIndex: 2,
+        }}
+      />
       <canvas id="canvas" width="400" height="400" ref={canvasRef} />
       <button
         onClick={spinWheel}
@@ -63,29 +80,11 @@ const SpinWheel = ({ items, onSpinEnd }) => {
           color: "white",
           fontWeight: "bold",
           cursor: "pointer",
-          userSelect: "none",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "4px",
+          fontSize: "18px",
+          zIndex: 3,
         }}
       >
         Spin
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          fill="none"
-          stroke="white"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          viewBox="0 0 24 24"
-        >
-          <line x1="12" y1="19" x2="12" y2="5" />
-          <polyline points="5 12 12 5 19 12" />
-        </svg>
       </button>
     </div>
   );
@@ -97,13 +96,27 @@ const tickSound = new Howl({
 });
 
 const colors = [
-  "#f87171",
-  "#60a5fa",
-  "#34d399",
-  "#facc15",
-  "#a78bfa",
-  "#fb923c",
-  "#f472b6",
+  "#f06b54",
+  "#df58af",
+  "#80c183",
+  "#6cdfb3",
+  "#966ca1",
+  "#886f9a",
+  "#c2ad50",
+  "#fdb516",
+  "#8b5e68",
+  "#28ada0",
+  "#eb8435",
+  "#fc82af",
+  "#f7e0ef",
+  "#e3dff3",
+  "#dea536",
+  "#06b456",
+  "#0cc1cf",
+  "#fcc83d",
+  "#977764",
+  "#17b5de",
+  " #658c49",
 ];
 
 const getColor = (index) => colors[index % colors.length];
