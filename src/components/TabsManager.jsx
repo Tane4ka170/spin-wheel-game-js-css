@@ -12,18 +12,17 @@ const TabsManager = ({
   const [newName, setNewName] = useState("");
 
   return (
-    <div className="flex items-center flex-wrap gap-2 mb-4">
+    <div className="flex flex-wrap items-center gap-2">
       {tabs.map((tab, index) => (
         <div
           key={index}
-          className={`relative px-3 py-1 rounded-md cursor-pointer text-sm font-medium
+          className={`flex items-center px-3 py-1 rounded-lg cursor-pointer transition-all
             ${
               activeTabIndex === index
                 ? "bg-blue-600 text-white"
-                : "bg-gray-200 text-gray-800"
-            }
-            hover:bg-blue-500 hover:text-white transition`}
-          onClick={() => onTabChange(index)}
+                : "bg-gray-100 text-gray-800 hover:bg-blue-100"
+            }`}
+          onClick={() => onTabChange(index)} // ✅ Виправлення тут
         >
           {editingIndex === index ? (
             <input
@@ -31,20 +30,21 @@ const TabsManager = ({
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               onBlur={() => {
-                onRenameTab(index, newName);
+                if (newName.trim()) onRenameTab(index, newName.trim());
                 setEditingIndex(null);
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  onRenameTab(index, newName);
+                  if (newName.trim()) onRenameTab(index, newName.trim());
                   setEditingIndex(null);
                 }
               }}
               autoFocus
-              className="bg-white text-black border px-1 rounded"
+              className="w-24 px-2 py-1 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm"
             />
           ) : (
             <span
+              className="text-sm font-medium"
               onDoubleClick={() => {
                 setEditingIndex(index);
                 setNewName(tab.name);
@@ -54,15 +54,14 @@ const TabsManager = ({
             </span>
           )}
 
-          {/* Remove tab button (optional) */}
           {tabs.length > 1 && (
             <button
-              className="ml-2 text-xs text-red-500 hover:text-red-700"
               onClick={(e) => {
                 e.stopPropagation();
                 onRemoveTab(index);
               }}
               title="Remove Tab"
+              className="ml-2 text-xs bg-red-500 hover:bg-red-600 text-white rounded px-2 py-0.5"
             >
               ×
             </button>
@@ -72,7 +71,7 @@ const TabsManager = ({
 
       <button
         onClick={onAddTab}
-        className="bg-green-500 text-white text-sm px-3 py-1 rounded hover:bg-green-600 transition"
+        className="text-sm font-semibold bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg transition"
       >
         + Add Tab
       </button>
