@@ -2,27 +2,40 @@ import { useEffect, useState } from "react";
 import SpinWheel from "./components/SpinWheel";
 import WheelItemEditor from "./components/WheelItemEditor";
 import TabsManager from "./components/TabsManager";
+import toast from "react-hot-toast";
 
 const LOCAL_STORAGE_KEY = "spinWheelTabs";
 
 function App() {
-  const [tabs, setTabs] = useState([{ name: "Default", items: [] }]);
+  const [tabs, setTabs] = useState([]);
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
 
-  // Load from localStorage on mount
+  // Load from localStorage
   useEffect(() => {
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (stored) {
-      setTabs(JSON.parse(stored));
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setTabs(parsed);
+          return;
+        }
+      } catch (error) {
+        console.error("Failed to parse stored tabs", error);
+      }
     }
+    // fallback
+    setTabs([{ name: "Default", items: [] }]);
   }, []);
 
-  // Save to localStorage on change
+  // Save to localStorage
   useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(tabs));
+    if (tabs.length > 0) {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(tabs));
+    }
   }, [tabs]);
 
-  const currentTab = tabs[currentTabIndex];
+  const currentTab = tabs[currentTabIndex] || { name: "", items: [] };
 
   const updateCurrentTabItems = (newItems) => {
     const updatedTabs = [...tabs];
@@ -30,69 +43,76 @@ function App() {
     setTabs(updatedTabs);
   };
 
-  const addItem = (item) => {
-    updateCurrentTabItems([...currentTab.items, item]);
-  };
-
   const addBulkItems = (itemsArray) => {
     updateCurrentTabItems([...currentTab.items, ...itemsArray]);
+    toast.success("Додано елементи!");
   };
 
   const removeItem = (index) => {
     const newItems = [...currentTab.items];
     newItems.splice(index, 1);
     updateCurrentTabItems(newItems);
+    toast.success("Елемент видалено");
   };
 
   const clearItems = () => {
     updateCurrentTabItems([]);
+    toast.success("Усі елементи очищено");
   };
 
-  const addNewTab = (name) => {
-    setTabs([...tabs, { name, items: [] }]);
-    setCurrentTabIndex(tabs.length); // switch to new tab
+  const addNewTab = () => {
+    const newTabName = `Tab ${tabs.length + 1}`;
+    setTabs([...tabs, { name: newTabName, items: [] }]);
+    setCurrentTabIndex(tabs.length);
+    toast.success("Новий таб створено");
   };
 
   const renameTab = (index, newName) => {
     const updatedTabs = [...tabs];
     updatedTabs[index].name = newName;
     setTabs(updatedTabs);
+    toast.success("Назву таба змінено");
   };
 
   const deleteTab = (index) => {
     if (tabs.length === 1) return;
     const updatedTabs = tabs.filter((_, i) => i !== index);
     setTabs(updatedTabs);
-    setCurrentTabIndex(Math.max(0, currentTabIndex - 1));
+    setCurrentTabIndex((prev) => (index === prev ? 0 : Math.max(0, prev - 1)));
+    toast.success("Таб видалено");
+  };
+
+  const handleSpinEnd = (item) => {
+    setTimeout(() => {
+      toast.success(`🎉 Випало: ${item}`, {
+        icon: "🎯",
+      });
+    }, 0);
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 flex flex-col items-center">
-      <h1 className="text-3xl font-bold mb-4">🎯 Universal Spin Wheel</h1>
+    <div className="container mx-auto p-4">
+      <h1 className="text-4xl font-bold text-center mb-8">🎯 Spin Wheel</h1>
 
       <TabsManager
         tabs={tabs}
-        currentTabIndex={currentTabIndex}
-        setCurrentTabIndex={setCurrentTabIndex}
+        activeTabIndex={currentTabIndex}
+        onTabChange={setCurrentTabIndex}
         onAddTab={addNewTab}
         onRenameTab={renameTab}
-        onDeleteTab={deleteTab}
+        onRemoveTab={deleteTab}
       />
 
-      <div className="w-full max-w-4xl grid md:grid-cols-2 gap-4 mt-6">
+      <div className="flex flex-col items-center gap-8 mt-10">
         <WheelItemEditor
           items={currentTab.items}
-          onAddItem={addItem}
           onAddBulk={addBulkItems}
           onRemoveItem={removeItem}
           onClearItems={clearItems}
         />
 
-        <div className="flex flex-col items-center gap-4">
-          <SpinWheel
-            items={currentTab.items}
-            onSpinEnd={(item) => alert(`Випало: ${item}`)}
-          />
+        <div className="w-full max-w-md">
+          <SpinWheel items={currentTab.items} onSpinEnd={handleSpinEnd} />
         </div>
       </div>
     </div>
