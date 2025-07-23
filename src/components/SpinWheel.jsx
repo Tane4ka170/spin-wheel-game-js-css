@@ -4,36 +4,34 @@ import { Howl } from "howler";
 const SpinWheel = ({ items, onSpinEnd }) => {
   const canvasRef = useRef(null);
   const wheelRef = useRef(null);
+  console.log("Wheel created:", wheelRef.current);
 
   useEffect(() => {
-    if (!items.length) return;
+    if (!canvasRef.current || !items.length) return;
 
-    wheelRef.current = new window.Winwheel({
+    const segments = items.map((item) => ({
+      text: item,
+    }));
+
+    const theWheel = new Winwheel({
       canvasId: "canvas",
-      numSegments: items.length,
-      outerRadius: 150,
-      textFontSize: 16,
-      segments: items.map((item, i) => ({
-        fillStyle: getColor(i),
-        text: item,
-      })),
+      numSegments: segments.length,
+      segments,
       animation: {
         type: "spinToStop",
         duration: 5,
         spins: 8,
-        callbackFinished: (indicatedSegment) => {
-          console.log("Finished spin with:", indicatedSegment.text);
-          if (onSpinEnd) onSpinEnd(indicatedSegment.text);
-        },
-        callbackSound: () => tickSound.play(),
-        soundTrigger: "pin",
-      },
-      pins: {
-        number: items.length,
-        fillStyle: "silver",
-        outerRadius: 4,
+        callbackFinished: null, // ← ПОКИ НЕ ДАЄМО
       },
     });
+
+    // Присвоїмо callback окремо, щоб точно потрапило
+    theWheel.animation.callbackFinished = function (indicatedSegment) {
+      console.log("Spin finished!", indicatedSegment);
+      handleSpinEnd(indicatedSegment.text);
+    };
+
+    wheelRef.current = theWheel;
   }, [items]);
 
   const spinWheel = () => {
@@ -42,6 +40,7 @@ const SpinWheel = ({ items, onSpinEnd }) => {
       wheelRef.current.rotationAngle = 0;
       wheelRef.current.draw();
       wheelRef.current.startAnimation();
+      console.log("Starting animation...");
     }
   };
 
