@@ -83,13 +83,12 @@ function App() {
   };
 
   const handleSpinEnd = (item) => {
-    setTimeout(() => {
-      toast.success(`🎉 Випало: ${item}`, {
+    requestAnimationFrame(() => {
+      toast.success(`🎯 Випало: ${item}`, {
         icon: "🎯",
       });
-    }, 0);
+    });
   };
-
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-4xl font-bold text-center mb-8">🎯 Spin Wheel</h1>
