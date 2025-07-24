@@ -1,16 +1,17 @@
 import { useEffect, useRef } from "react";
 import { Howl } from "howler";
+import toast from "react-hot-toast";
 
 const SpinWheel = ({ items, onSpinEnd }) => {
   const canvasRef = useRef(null);
   const wheelRef = useRef(null);
-  console.log("Wheel created:", wheelRef.current);
 
   useEffect(() => {
     if (!canvasRef.current || !items.length) return;
 
     const segments = items.map((item) => ({
       text: item,
+      fillStyle: getColor(index),
     }));
 
     const theWheel = new Winwheel({
@@ -26,9 +27,10 @@ const SpinWheel = ({ items, onSpinEnd }) => {
     });
 
     // Присвоїмо callback окремо, щоб точно потрапило
-    theWheel.animation.callbackFinished = function (indicatedSegment) {
-      console.log("Spin finished!", indicatedSegment);
-      handleSpinEnd(indicatedSegment.text);
+    theWheel.animation.callbackFinished = function (segment) {
+      console.log("✅ Spin completed! Segment:", segment?.text);
+      toast.success(`🎯 Випало: ${segment?.text}`);
+      onSpinEnd?.(segment?.text); // ← передаємо результат в App
     };
 
     wheelRef.current = theWheel;
@@ -40,7 +42,6 @@ const SpinWheel = ({ items, onSpinEnd }) => {
       wheelRef.current.rotationAngle = 0;
       wheelRef.current.draw();
       wheelRef.current.startAnimation();
-      console.log("Starting animation...");
     }
   };
 
