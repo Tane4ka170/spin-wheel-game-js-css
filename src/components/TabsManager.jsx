@@ -13,7 +13,7 @@ const TabsManager = ({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {tabs.map((tab, index) => (
+      {tabs.map((currentTab, index) => (
         <div
           key={index}
           className={`flex items-center px-3 py-1 rounded-lg cursor-pointer transition-all
@@ -47,10 +47,10 @@ const TabsManager = ({
               className="text-sm font-medium"
               onDoubleClick={() => {
                 setEditingIndex(index);
-                setNewName(tab.name);
+                setNewName(currentTab.name);
               }}
             >
-              {tab.name}
+              {currentTab.name}
             </span>
           )}
 
